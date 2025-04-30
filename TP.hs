@@ -1,6 +1,5 @@
-import Heap
+import qualified Heap as Heap
 import qualified Data.Map as Map
-
 
 
 -- Definimos el tipo de dato que nos permite representar árboles de Huffman
@@ -8,17 +7,15 @@ import qualified Data.Map as Map
 data HTree = Leaf Char Int | Node HTree HTree Int deriving Show
 
 
--- PREGUNTAR CUANDO DOS HTree SON IGUALES!
-
 -- 1. Dar una instancia de la clase Ord para el tipo HTree. Para ello, primero debe dar una instancia de la clase Eq
 
 instance Eq HTree where
-  (==) (Leaf c1 w1) (Leaf c2 w2)           = (c1 == c2) && (w1 == w2)
-  (==) (Leaf _ _) (Node _ _ _)             = False
-  (==) (Node _ _ _) (Leaf _ _)             = False
-  (==) (Node ht1 ht2 w1) (Node ht3 ht4 w2) = (ht1 == ht3) && (ht2 == ht4) && (w1 == w2)
+  (==) (Leaf c1 w1) (Leaf c2 w2)           = (w1 == w2)
+  (==) (Leaf _ _) (Node _ _ _)             = (w1 == w2)
+  (==) (Node _ _ _) (Leaf _ _)             = (w1 == w2)
+  (==) (Node ht1 ht2 w1) (Node ht3 ht4 w2) = (w1 == w2)
 
-  (/=) ht1 ht2 = not (ht1 == ht2)
+  -- (/=) ht1 ht2 = not (ht1 == ht2)
 
 
 instance Ord HTree where
@@ -27,19 +24,19 @@ instance Ord HTree where
   (<=) (Node _ _ w1) (Leaf _ w2)         = (w1 <= w2)
   (<=) (Node _ _ w1) (Node _ _ w2)       = (w1 <= w2)
 
-  (<) (Leaf _ w1) (Leaf _ w2)           = (w1 < w2)
-  (<) (Leaf _ w1) (Node _ _ w2)         = (w1 < w2)
-  (<) (Node _ _ w1) (Leaf _ w2)         = (w1 < w2)
-  (<) (Node _ _ w1) (Node _ _ w2)       = (w1 < w2)
+  --(<) (Leaf _ w1) (Leaf _ w2)           = (w1 < w2)
+  --(<) (Leaf _ w1) (Node _ _ w2)         = (w1 < w2)
+  --(<) (Node _ _ w1) (Leaf _ w2)         = (w1 < w2)
+  --(<) (Node _ _ w1) (Node _ _ w2)       = (w1 < w2)
 
-  (>) ht1 ht2 = not (ht1 <= ht2)
+  --(>) ht1 ht2 = not (ht1 <= ht2)
 
-  (>=) ht1 ht2 = not (ht1 < ht2)
+  --(>=) ht1 ht2 = not (ht1 < ht2)
 
-  (max) ht1 ht2 = if (ht1 <= ht2) then ht2 else ht1
+  --(max) ht1 ht2 = if (ht1 <= ht2) then ht2 else ht1
 
-  (min) ht1 ht2 = if (ht1 <= ht2) then ht1 else ht2
-  
+  --(min) ht1 ht2 = if (ht1 <= ht2) then ht1 else ht2
+
 
 {- 2. Definir una función buildFreqMap :: String -> FreqMap que dado un string, compute la cantidad de apariciones
   de cada uno de sus caracteres. Sugerencia: la función insertWith de Data.Map puede ser de utilidad.
@@ -61,41 +58,47 @@ build_FreqMap str = build_FreqMap_aux Map.empty str
   una implementación de min-heaps basada en leftist heaps, como se vio en clase.
 -}
 
-map_to_HTree_list :: [(Char,Int)] -> [HTree]
-map_to_HTree_list [] tree         = tree
-map_to_HTree_list ((c,w):xs) tree = [(Leaf c w)] ++ tree
-
-trans :: [HTree] -> Heap HTree -> Heap HTree
-trans [] heap     = heap
-trans (x:xs) heap = trans xs (merge (N 1 x E E) heap)
-
 suma_pesos :: HTree -> HTree -> Int
 suma_pesos (Leaf _ w1) (Leaf _ w2)     = w1+w2
 suma_pesos (Leaf _ w1) (Node _ _ w2)   = w1+w2
 suma_pesos (Node _ _ w1) (Leaf _ w2)   = w1+w2
 suma_pesos (Node _ _ w1) (Node _ _ w2) = w1+w2
 
+
 merge_HTree :: HTree -> HTree -> HTree
 merge_HTree ht1 ht2 = (Node ht1 ht2 (suma_pesos ht1 ht2))
 
-build_HTree_aux :: Heap HTree -> HTree -> HTree
+
+map_to_HTree_list :: [(Char,Int)] -> [HTree] -> [HTree]
+map_to_HTree_list [] tree         = tree
+map_to_HTree_list ((c,w):xs) tree = map_to_HTree_list xs ([(Leaf c w)] ++ tree)
+
+
+trans :: [HTree] -> Heap.Heap HTree -> Heap.Heap HTree
+trans [] heap     = heap
+trans (x:xs) heap = trans xs (Heap.merge (Heap.insert x empty) heap)
+
+
+build_HTree_aux :: Heap.Heap HTree -> HTree -> HTree
 build_HTree_aux heap min_htree
-    | (isEmpty heap) = min_htree
-    | otherwise      = let
-                          min_el    = findmin heap
-                          rest_heap = deleteMin heap
-                          new_htree = merge min_htree min_el
-                          new_heap  = insert rest_heap new_htree
-                       in
-                        build_FreqMap_aux (deleteMin new_heap) (findMin new_heap)
+    | (Heap.isEmpty heap) = min_htree
+    | otherwise           = let
+                              min_el    = Heap.findMin heap
+                              rest_heap = Heap.deleteMin heap
+                              new_htree = merge_HTree min_htree min_el
+                              new_heap  = (Heap.insert new_htree rest_heap)
+                            in
+                              build_HTree_aux (Heap.deleteMin new_heap) (Heap.findMin new_heap)
+
 
 build_HTree :: FreqMap -> HTree
-build_HTree m  
-  | (m == Map.empty) = undefined 
+build_HTree m
+  | (m == Map.empty) = error "Mapa vacío" 
   | otherwise = let 
-                  heap = trans (Map.fromList m) E 
+                  list_kv = map_to_HTree_list (Map.toList m) []
+                  heap    = trans list_kv Heap.empty
                 in 
-                  build_HTree_aux (deleteMin heap) (findMin heap)
+                  build_HTree_aux (Heap.deleteMin heap) (Heap.findMin heap)
 
 
 

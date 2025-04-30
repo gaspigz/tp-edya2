@@ -9,7 +9,7 @@ module Heap (
 ) where
 
 type Rank = Int
-data Heap a = E | N Rank a (Heap a) (Heap a)
+data Heap a = E | N Rank a (Heap a) (Heap a) deriving Show
 
 merge :: Ord a => Heap a -> Heap a -> Heap a
 merge h1 E = h1
