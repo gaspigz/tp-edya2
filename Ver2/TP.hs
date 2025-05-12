@@ -130,10 +130,11 @@ type CodeMap = Map.Map Char Code
   de códigos de caracteres.
 -}
 
+
 buildCodeMap_aux :: HTree -> Code -> [(Char,Code)] -> [(Char,Code)]
-buildCodeMap_aux (Leaf x _) code codes_list       = (x, code):codes_list
-buildCodeMap_aux (Node htl htr _) code codes_list = (buildCodeMap_aux htl (code ++ [Zero]) codes_list) ++ 
-                                                    (buildCodeMap_aux htr (code ++ [One]) codes_list)
+buildCodeMap_aux (Leaf x _) code codes_list       = (x, reverse code):codes_list
+buildCodeMap_aux (Node htl htr _) code codes_list = (buildCodeMap_aux htl (Zero:code) codes_list) ++ 
+                                                    (buildCodeMap_aux htr (One:code) codes_list)
 
 
 -- buildCodeMap: Recibe un árbol de codificación y devuelve
@@ -294,6 +295,11 @@ encode_EngFM_trad_with_lenght xs = length (encode_traditional xs)
 lenght_list_traditional          = map encode_EngFM_trad_with_lenght strings_list
 code_lenght_traditional          = sum lenght_list_traditional
 
-{-  Conclusión: Como conclusión final podemos decir que:
+{-  Conclusión: Al usar la codificación de Huffman logramos ahorrar una gran cantidad 
+    de bits. Además mientras más largo sea el texto, más bits se ahorraran.
 
+    Por ejemplo en este trabajo se definieron 10 strings con fragmentos de libros varios,
+    y vemos que usando Huffman se ahorran 4319 bits, que aproximadamente son 539 bytes. Quizas
+    puede parecer un número bajo, pero si con fragmentos de libros podemos lograr esto, con 
+    textos más largos podríamos obtener incluso un mejor resultado.
 -}
