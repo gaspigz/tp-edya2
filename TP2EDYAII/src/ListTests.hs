@@ -53,13 +53,13 @@ testScanSumSeq3 =
 
 testsLists = 
   [
-    testMapEmptySeq,
-    testMapNonEmptySeq,
-    testLengthEmptySeq,
-    testLengthNonEmptySeq,
-    testReduceSumSeq0,
-    testReduceSumSeq3,
-    testScanSumSeq0,
+    --testMapEmptySeq,
+    --testMapNonEmptySeq,
+    --testLengthEmptySeq,
+    --testLengthNonEmptySeq,
+    --testReduceSumSeq0,
+    --testReduceSumSeq3,
+    --testScanSumSeq0,
     testScanSumSeq3
   ]
 

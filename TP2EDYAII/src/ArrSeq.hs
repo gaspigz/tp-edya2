@@ -18,8 +18,14 @@ reduceSAux f arr =  case (lengthS arr) of
                                  in
                                    f arr1 arr2
 
-scanAux1 :: (a -> a -> a) -> A.Arr a -> Int -> a
-scanAux1 f arr i = f (nthS arr (2*i)) (nthS arr ((2*i)+1))
+scanAux1 :: (a -> a -> a) -> A.Arr a -> Int -> Int -> a
+scanAux1 f s n i = if 
+                    ((2*i) >= n-1)
+                  then 
+                    nthS s (2*i)
+                  else
+                    f (nthS s (2*i)) (nthS s ((2*i)+1))
+
 
 scanAux2 :: (a -> a -> a) -> A.Arr a -> A.Arr a -> Int -> a
 scanAux2 f arr arr' i = if 
@@ -87,8 +93,8 @@ instance Seq A.Arr where
                             0 -> (A.empty, b)
                             1 -> (singletonS b, f b (nthS arr 0)) 
                             n -> let  
-                                   medio = div n 2
-                                   contraccion = tabulateS (scanAux1 f arr) medio 
+                                   medio = if even n then (div n 2) else ((div n 2) + 1) 
+                                   contraccion = tabulateS (scanAux1 f arr n) medio 
                                    (arr', end) = scanS f b contraccion
                                    expansion = tabulateS (scanAux2 f arr' contraccion) n
                                  in
