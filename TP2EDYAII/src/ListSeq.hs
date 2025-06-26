@@ -22,61 +22,83 @@ scanAux2 f s s' i = if
                     else
                      f (nthS s (div i 2)) (nthS s' (i-1))
 
+tabulateAux :: (Int -> a) -> Int -> Int -> [a]
+tabulateAux f n 0 = (f n):[]
+tabulateAux f n i = let
+                      (x,rest) = (f (n-i)) ||| (tabulateAux f n (i-1))
+                    in
+                      (x:rest)
+
+reduceAux :: (a -> a -> a) -> [a] -> [a]
+reduceAux _ [] = []
+reduceAux _ [x] = [x]
+reduceAux f (x:(x':xs)) = let
+                  (y,ys) = (f x x') ||| (reduceAux f xs)
+                 in
+                  (y:ys)
+
+
 
 instance Seq [] where
     emptyS = []
 
     singletonS x = [x]
 
-    lengthS xs = length xs
+    lengthS [] = 0
+    lengthS (x:xs) = 1 + (lengthS xs)
 
     nthS xs i  = xs !! i
 
-    -- Versión 2
-    -- tabulateS f n = [f x | x <- [0..n-1]]
+    tabulateS f n = tabulateAux f n n
 
-    tabulateS f n = map f [0..n-1]
+    filterS p []     = []
+    filterS p (x:xs) = let
+                      (x',xs') = (p x) ||| (filterS p xs)
+                     in
+                      if x' then (x:xs') else xs'
 
-    mapS f xs = map f xs
+    appendS [] ys     = ys
+    appendS (x:xs) ys = x:(xs++ys)
 
-    filterS p xs = filter p xs
+    takeS xs 0     = []
+    takeS [] n     = []
+    takeS (x:xs) n = x:(takeS xs (n-1))
 
-    appendS xs ys = (xs ++ ys)
-
-    takeS xs i = take i xs
-
-    dropS xs i = drop i xs
+    dropS xs 0     = xs
+    dropS [] n     = []
+    dropS (x:xs) n = (dropS xs (n-1))
+    
 
     showtS []  = EMPTY
     showtS [x] = ELT x
     showtS xs  = let 
                    mid   = length xs `div` 2 
                    (l,r) = takeS xs mid ||| dropS xs mid
-                 in NODE l r     
+                 in NODE l r
 
     showlS []     = NIL
     showlS (x:xs) = CONS x xs
 
-    joinS xss = concat xss
+    joinS [] = []
+    joinS ([]:xss) = joinS xss
+    joinS ((x:xs):xss) = x:(joinS (xs:xss))
 
     reduceS f b []  = b
     reduceS f b [x] = f b x
-    reduceS f b s   = let 
-                        n         = lengthS s
-                        maxPotDos = 2 ^ lg (n-1)
-                        (l,r)     = (reduceS f b (takeS s maxPotDos)) ||| (reduceS f b (dropS s maxPotDos))
-                      in f l r
-
-
-    scanS f b []   = ([], b)
-    scanS f b [x]  = ([b], f b x)
-    scanS f b s    = let
-                       n           = lengthS s
-                       medio       = div n 2
-                       contraccion = tabulateS (scanAux1 f s n) (medio+1)
-                       (s', end)   = scanS f b contraccion
-                       expansion   = tabulateS (scanAux2 f s' contraccion) n
-                     in
-                       (expansion, end)
-
-    fromList xs = xs
+    reduceS f b xs  = let 
+                        ys = reduceAux f xs
+                      in
+                        reduceS f b ys
+    
+--    scanS f b []   = ([], b)
+--    scanS f b [x]  = ([b], f b x)
+--    scanS f b s    = let
+--                       n           = lengthS s
+--                       medio       = div n 2
+--                       contraccion = tabulateS (scanAux1 f s n) (medio+1)
+--                       (s', end)   = scanS f b contraccion
+--                       expansion   = tabulateS (scanAux2 f s' contraccion) n
+--                     in
+--                       (expansion, end)
+--
+--    fromList xs = xs
