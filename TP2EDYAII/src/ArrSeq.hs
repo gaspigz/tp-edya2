@@ -33,17 +33,24 @@ scanAux2 f arr arr' i = if
 instance Seq A.Arr where
     emptyS = A.empty
 
+
     singletonS x = A.fromList [x] 
+
 
     lengthS arr =  A.length arr
 
+
     nthS arr i  = arr ! i 
+
 
     tabulateS f n =  A.tabulate f n
 
+
     fromList xs = A.fromList xs
 
+
     mapS f arr = tabulateS (\i -> f (nthS arr i)) (lengthS arr)
+
 
     appendS arr1 arr2 = let 
                           n = lengthS arr1
@@ -51,14 +58,21 @@ instance Seq A.Arr where
                         in 
                           tabulateS (\ i -> if i < n then nthS arr1 i else nthS arr2 (i - n)) (n + m)  
 
+
     takeS arr i     = A.subArray 0 i arr
+
 
     dropS arr i     = A.subArray i (lengthS arr - i) arr
 
-    filterS p arr = let
-                     n = lengthS arr
-                   in 
-                     fromList [x | i <- [0..n-1], let x = nthS arr i, p x]
+    -- !!! (EL COSTE PUEDE SER ^2 POR EL APPEND)
+    filterS p arr = case (lengthS arr) of
+                              0 -> emptyS
+                              n -> let
+                                     (l,r) = (takeS arr (div n 2)) ||| (dropS arr (div n 2))
+                                     (l',r') = (filterS p l) ||| (filterS p r)
+                                   in
+                                     (appendS l' r')
+      
 
     showtS arr = case (lengthS arr) of
                             0 -> EMPTY
@@ -77,12 +91,12 @@ instance Seq A.Arr where
 
     joinS arrr = A.flatten arrr
 
+
     reduceS f b arr = case (lengthS arr) of 
                             0 -> b
                             n -> f b (reduceSAux f arr) 
 
     
-
     scanS f b arr = case (lengthS arr) of 
                             0 -> (A.empty, b)
                             1 -> (singletonS b, f b (nthS arr 0)) 
