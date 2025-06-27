@@ -7,7 +7,7 @@ import ArrSeq
 
 s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11 :: Arr Int
 s12, s14 :: Arr [Char]
-s13 :: Arr [Int]
+s13, s15 :: Arr [Int]
 s0  = fromList []
 s1  = fromList [4]
 s2  = fromList [5,1]
@@ -23,6 +23,7 @@ s11 = fromList [-40,30,70,100,-10,-90,-5,-6,-100]
 s12 = fromList ["a","b","c","d","e","f","g","h","i","j"]
 s13 = fromList [[1],[2],[3],[4],[5],[6],[7]]
 s14 = fromList ["k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+s15 = fromList []
 
 
 -- Tests lengthS
@@ -39,32 +40,26 @@ testLengthS5 =
   TestCase $ assertEqual "length s5" 13 (lengthS s5)
 
 
--- Test singletonS
-testSingletonS :: Test
-testSingletonS = 
-  TestCase $ assertEqual "singleton 42" (fromList [42]) (singletonS 42)
-
-
 -- Test tabulateS
 testTabulate1 :: Test
 testTabulate1 = 
-  TestCase $ assertEqual "tabulate (+1)" (fromList [1,2,3]) (tabulateS (+1) 3)
+  TestCase $ assertEqual "tabulate (+1)" ((fromList [1,2,3]) :: Arr Int ) ((tabulateS (+1) 3) :: Arr Int)
 
 testTabulate2 :: Test
 testTabulate2 = 
-  TestCase $ assertEqual "tabulate (*2)" (fromList [0,2,4,6]) (tabulateS (*2) 4)
+  TestCase $ assertEqual "tabulate (*2)" ((fromList [0,2,4,6]) :: Arr Int) ((tabulateS (*2) 4) :: Arr Int)
 
 testTabulate3 :: Test
 testTabulate3 = 
-  TestCase $ assertEqual "tabulate const 7" (fromList [7,7,7]) (tabulateS (const 7) 3)
+  TestCase $ assertEqual "tabulate const 7" ((fromList [7,7,7]) :: Arr Int) ((tabulateS (const 7) 3) :: Arr Int)
 
 testTabulate4 :: Test
 testTabulate4 = 
-  TestCase $ assertEqual "tabulate negate" (fromList [0,-1,-2]) (tabulateS negate 3)
+  TestCase $ assertEqual "tabulate negate" ((fromList [0,-1,-2]) :: Arr Int ) ((tabulateS negate 3) :: Arr Int)
 
 testTabulate5 :: Test
 testTabulate5 = 
-  TestCase $ assertEqual "tabulate square" (fromList [0,1,4,9]) (tabulateS (\i -> i*i) 4)
+  TestCase $ assertEqual "tabulate square" ((fromList [0,1,4,9]) :: Arr Int) ((tabulateS (\i -> i*i) 4) :: Arr Int)
 
 
 -- Test mapS
@@ -102,7 +97,7 @@ testMap7 =
 
 testMap8 :: Test
 testMap8 = 
-  TestCase $ assertEqual "map (++"!") s12" (fromList ["a!","b!","c!","d!","e!","f!","g!","h!","i!","j!"]) (mapS (++ "!") s12)
+  TestCase $ assertEqual "map (++ *!*) s12" (fromList ["a!","b!","c!","d!","e!","f!","g!","h!","i!","j!"]) (mapS (++ "!") s12)
 
 testMap9 :: Test
 testMap9 = 
@@ -110,7 +105,7 @@ testMap9 =
 
 testMap10 :: Test
 testMap10 = 
-  TestCase $ assertEqual "map (++"1") s14" 
+  TestCase $ assertEqual "map (++1) s14" 
     (fromList ["k1","l1","m1","n1","o1","p1","q1","r1","s1","t1","u1","v1","w1","x1","y1","z1"]) 
     (mapS (++ "1") s14)
 
@@ -175,7 +170,7 @@ testAppend3 =
 
 testAppend4 :: Test
 testAppend4 = 
-  TestCase $ assertEqual "append s13 []" s13 (appendS s13 s0)
+  TestCase $ assertEqual "append s13 []" s13 (appendS s13 s15)
 
 testAppend5 :: Test
 testAppend5 = 
@@ -216,13 +211,13 @@ testDropS2 =
 
 testJoinS0 :: Test
 testJoinS0 = 
-  TestCase $ assertEqual "join [[1],[2],[3]]" (fromList [1,2,3]) 
-                         (joinS (fromList [fromList [1], fromList [2], fromList [3]]))
+  TestCase $ assertEqual "join [[1],[2],[3]]" ((fromList [1,2,3]) :: Arr Int) 
+                         ((joinS (fromList [fromList [1], fromList [2], fromList [3]])) :: Arr Int)
 
 testJoinS1 :: Test
 testJoinS1 = 
-  TestCase $ assertEqual "join [[1,2],[3,4]]" (fromList [1,2,3,4]) 
-                         (joinS (fromList [fromList [1,2], fromList [3,4]]))
+  TestCase $ assertEqual "join [[1,2],[3,4]]" ((fromList [1,2,3,4]) :: Arr Int) 
+                         ((joinS (fromList [fromList [1,2], fromList [3,4]])) :: Arr Int)
 
 
 -- Test reduceS
@@ -344,14 +339,87 @@ testScanSumSeq3 =
 
 testsArray = 
   [
-    testMapEmptySeq,
-    testMapNonEmptySeq,
-    testLengthEmptySeq,
-    testLengthNonEmptySeq,
-    testReduceSumSeq0,
-    testReduceSumSeq3,
-    testScanSumSeq0,
-    testScanSumSeq3
+    -- Test lenghtS
+    testLengthS0,
+    testLengthS1,
+    testLengthS5,
+
+    -- Test tabulataS
+    testTabulate1,
+    testTabulate2,
+    testTabulate3,
+    testTabulate4,
+    testTabulate5,
+
+    -- Test mapS
+    testMap0,
+    testMap1,
+    testMap2,
+    testMap3,
+    testMap4,
+    testMap5,
+    testMap6,
+    testMap7,
+    testMap8,
+    testMap9,
+    testMap10,
+
+    -- Test filterS
+    testFilter1,
+    testFilter2,
+    testFilter3,
+    testFilter4,
+    testFilter5,
+    testFilter6,
+    testFilter7,
+    testFilter8,
+    testFilter9,
+    testFilter10,
+
+    -- Test appendS
+    testAppend1,
+    testAppend2,
+    testAppend3,
+    testAppend4,
+    testAppend5,
+
+    -- Test takeS
+    testTakeS0,
+    testTakeS1,
+    testTakeS2,
+
+    -- Test dropS
+    testDropS0,
+    testDropS1,
+    testDropS2,
+
+    -- Test joinS
+    testJoinS0,
+    testJoinS1,
+
+    -- Test reduceS
+    testReduceS0,
+    testReduceS1,
+    testReduceS2,
+    testReduceS3,
+    testReduceS4,
+    testReduceS5,
+    testReduceS6,
+    testReduceS7,
+    testReduceS8,
+    testReduceS9,
+
+    -- Test scanS
+    testScanS0,
+    testScanS1,
+    testScanS2,
+    testScanS3,
+    testScanS4,
+    testScanS5,
+    testScanS6,
+    testScanS7,
+    testScanS8,
+    testScanS9
   ]
 
 

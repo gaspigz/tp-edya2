@@ -38,6 +38,7 @@ auxE f arr arr' i = if
                       f (nthS arr (div i 2)) (nthS arr' (i-1))
 
 
+
 expand :: (a -> a -> a) -> A.Arr a -> A.Arr a -> Int -> A.Arr a
 expand f arr arr' n = tabulateS (auxE f arr arr') n
 
@@ -71,14 +72,18 @@ instance Seq A.Arr where
                           tabulateS (\ i -> if i < n then nthS arr1 i else nthS arr2 (i - n)) (n + m)  
 
 
-    takeS arr i     = A.subArray 0 i arr
+    takeS arr i = A.subArray 0 i arr
 
 
-    dropS arr i     = A.subArray i (lengthS arr - i) arr
+    dropS arr i = A.subArray i (lengthS arr - i) arr
 
 
     filterS p arr = case (lengthS arr) of
                               0 -> emptyS
+                              1 -> let
+                                     x = nthS arr 0
+                                   in
+                                    if p x then singletonS x else emptyS
                               n -> let
                                      (l,r) = (takeS arr (div n 2)) ||| (dropS arr (div n 2))
                                      (l',r') = (filterS p l) ||| (filterS p r)
