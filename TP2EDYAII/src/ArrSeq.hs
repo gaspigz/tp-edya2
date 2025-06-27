@@ -8,26 +8,38 @@ import Par ((|||))
 lg n | n <= 1 = 0
      | otherwise = 1 + lg (n `div` 2)
 
-reduceSAux :: (a -> a -> a) -> A.Arr a -> a
-reduceSAux f arr =  case (lengthS arr) of 
-                            1 -> nthS arr 0 
-                            n -> let 
-                                   maxPotDos = 2 ^ lg (n-1)
-                                   (arr1, arr2) = (reduceSAux f (takeS arr maxPotDos)) ||| 
-                                                  (reduceSAux f (dropS arr maxPotDos))
-                                 in
-                                   f arr1 arr2
 
-scanAux1 :: (a -> a -> a) -> A.Arr a -> Int -> a
-scanAux1 f arr i = f (nthS arr (2*i)) (nthS arr ((2*i)+1))
+auxC :: (a -> a -> a) -> A.Arr a -> Int -> Int -> Int -> a
+auxC f arr n newSize i = if 
+                           (i == newSize-1) && (odd n)
+                         then
+                           (nthS arr (n-1))
+                         else
+                           f (nthS arr (2*i)) (nthS arr ((2*i) + 1))
+                        
 
-scanAux2 :: (a -> a -> a) -> A.Arr a -> A.Arr a -> Int -> a
-scanAux2 f arr arr' i = if 
-                         (even i)
-                        then
-                         (nthS arr (div i 2))
-                        else
-                         f (nthS arr (div i 2)) (nthS arr' (i-1))
+
+contr :: (a -> a -> a) -> A.Arr a -> A.Arr a
+contr f arr = case (lengthS arr) of
+                             0 -> emptyS
+                             1 -> arr
+                             n -> let
+                                    newSize = (div (n+1) 2)
+                                  in
+                                    tabulateS (auxC f arr n newSize) newSize
+
+
+auxE :: (a -> a -> a) -> A.Arr a -> A.Arr a -> Int -> a
+auxE f arr arr' i = if 
+                      (even i)
+                    then
+                      (nthS arr (div i 2))
+                    else
+                      f (nthS arr (div i 2)) (nthS arr' (i-1))
+
+
+expand :: (a -> a -> a) -> A.Arr a -> A.Arr a -> Int -> A.Arr a
+expand f arr arr' n = tabulateS (auxE f arr arr') n
 
 
 instance Seq A.Arr where
@@ -64,7 +76,7 @@ instance Seq A.Arr where
 
     dropS arr i     = A.subArray i (lengthS arr - i) arr
 
-    -- !!! (EL COSTE PUEDE SER ^2 POR EL APPEND)
+
     filterS p arr = case (lengthS arr) of
                               0 -> emptyS
                               n -> let
@@ -94,16 +106,20 @@ instance Seq A.Arr where
 
     reduceS f b arr = case (lengthS arr) of 
                             0 -> b
-                            n -> f b (reduceSAux f arr) 
+                            1 -> f b (nthS arr 0)
+                            n -> let
+                                   arr' = contr f arr
+                                 in
+                                   reduceS f b arr'
 
-    
+
+    -- !! PENSAR SI EL SCAN CUMPLE CON LA ESPECIFICACIÓN DE LOS COSTOS
     scanS f b arr = case (lengthS arr) of 
                             0 -> (A.empty, b)
                             1 -> (singletonS b, f b (nthS arr 0)) 
                             n -> let  
-                                   medio = div n 2
-                                   contraccion = tabulateS (scanAux1 f arr) medio 
-                                   (arr', end) = scanS f b contraccion
-                                   expansion = tabulateS (scanAux2 f arr' contraccion) n
+                                   contraction = contr f arr
+                                   (arr', end) = scanS f b contraction
+                                   expansion = expand f arr' arr n
                                  in
                                    (expansion, end)

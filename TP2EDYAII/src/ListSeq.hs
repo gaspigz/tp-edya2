@@ -17,6 +17,7 @@ scanAux f xs xs' 0 n = if
                               (y,ys) = (nthS xs' 0) ||| (scanAux f xs xs' 1 n)
                             in
                               (y:ys)
+
 scanAux f xs xs' i n = if 
                         (i == n) 
                        then 
